@@ -1,1298 +1,1421 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PhotoPass Pro — Passport Photo Generator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PassportForge — Professional Photo Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
+  :root {
+    --bg: #0a0b0f;
+    --surface: #111318;
+    --surface2: #181c24;
+    --surface3: #1e2330;
+    --border: #2a3040;
+    --border2: #3a4560;
+    --accent: #4fffb0;
+    --accent2: #00c8ff;
+    --accent3: #ff6b35;
+    --text: #e8edf8;
+    --text2: #8892aa;
+    --text3: #4a5568;
+    --danger: #ff4466;
+    --warn: #ffb347;
+    --radius: 12px;
+    --radius2: 8px;
+    --glow: 0 0 30px rgba(79,255,176,0.12);
+  }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #f0f2f5;
-    --surface: #ffffff;
-    --surface2: #f7f8fa;
-    --border: #e2e5ea;
-    --text: #1a1d23;
-    --text2: #5a6170;
-    --accent: #1b4fff;
-    --accent-dark: #1238d6;
-    --accent-light: #e8eeff;
-    --success: #16a34a;
-    --warning: #d97706;
-    --danger: #dc2626;
-    --shadow: 0 2px 12px rgba(0,0,0,0.08);
-    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
-    --radius: 10px;
-  }
-
   body {
-    font-family: 'Barlow', sans-serif;
+    font-family: 'Syne', sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    font-size: 15px;
+    overflow-x: hidden;
   }
 
-  /* ── HEADER ─────────────────────────────────────────── */
+  /* Grid BG */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,255,176,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,255,176,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* HEADER */
   header {
-    background: var(--text);
-    color: #fff;
-    padding: 0 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 56px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    padding: 28px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
   }
   .logo {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 22px;
-    letter-spacing: 1px;
-    color: #fff;
     display: flex;
     align-items: center;
-    gap: 10px;
-  }
-  .logo span {
-    color: var(--accent);
+    gap: 14px;
   }
   .logo-icon {
-    width: 32px; height: 32px;
-    background: var(--accent);
-    border-radius: 6px;
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
+    font-size: 20px;
   }
-  .header-badge {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    color: var(--text2);
-    text-transform: uppercase;
-  }
-
-  /* ── LAYOUT ─────────────────────────────────────────── */
-  .app-layout {
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 20px;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 20px;
-    min-height: calc(100vh - 56px);
+  .logo-text { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo-text span { color: var(--accent); }
+  .logo-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid rgba(79,255,176,0.3);
+    padding: 5px 12px;
+    border-radius: 100px;
+    letter-spacing: 1px;
   }
 
-  /* ── PANELS ─────────────────────────────────────────── */
-  .panel {
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-  .panel-header {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
+  /* STEP LABELS */
+  .steps-bar {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--surface2);
+    gap: 6px;
+    margin-bottom: 36px;
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
-  .panel-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    color: var(--text);
+  .step-chip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+    white-space: nowrap;
+    cursor: default;
+    transition: border-color .2s, color .2s;
   }
-  .step-badge {
-    width: 24px; height: 24px;
-    background: var(--accent);
-    color: #fff;
+  .step-chip.active { border-color: var(--accent); color: var(--accent); }
+  .step-num {
+    width: 18px; height: 18px;
+    background: var(--border);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    flex-shrink: 0;
+    font-size: 10px; font-weight: 700;
   }
-  .step-badge.done { background: var(--success); }
-  .panel-body { padding: 20px; }
+  .step-chip.active .step-num { background: var(--accent); color: #000; }
 
-  /* ── UPLOAD ZONE ─────────────────────────────────────── */
-  .upload-zone {
-    border: 2px dashed var(--border);
+  /* MAIN LAYOUT */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 440px;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 960px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .card-icon {
+    width: 32px; height: 32px;
     border-radius: 8px;
-    padding: 40px 24px;
+    background: var(--surface3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .card-title { font-size: 14px; font-weight: 700; letter-spacing: 0.3px; }
+  .card-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); margin-top: 1px; letter-spacing: 0.5px; }
+  .card-body { padding: 22px; }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border: 2px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 48px 24px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: border-color .25s, background .25s, transform .2s;
     position: relative;
-    background: var(--surface2);
+    overflow: hidden;
   }
   .upload-zone:hover, .upload-zone.drag-over {
     border-color: var(--accent);
-    background: var(--accent-light);
+    background: rgba(79,255,176,0.04);
+    transform: scale(1.005);
   }
-  .upload-zone input[type="file"] {
-    position: absolute; inset: 0;
-    opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .upload-icon {
-    font-size: 44px;
-    margin-bottom: 12px;
-    display: block;
-  }
-  .upload-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 6px;
-  }
-  .upload-hint {
-    font-size: 13px;
+  .upload-zone input[type=file] { display: none; }
+  .upload-icon { font-size: 42px; margin-bottom: 14px; opacity: .7; }
+  .upload-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .upload-hint { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); }
+  .upload-formats { display: flex; gap: 6px; justify-content: center; margin-top: 14px; }
+  .fmt-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
     color: var(--text2);
   }
 
-  /* ── ORIGINAL PREVIEW ────────────────────────────────── */
-  .original-preview {
-    display: none;
-    align-items: center;
-    gap: 14px;
-    padding: 14px;
-    background: var(--surface2);
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    margin-top: 14px;
-  }
-  .original-preview.visible { display: flex; }
-  .original-thumb {
-    width: 56px; height: 56px;
-    object-fit: cover;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .original-info { flex: 1; min-width: 0; }
-  .original-name {
-    font-weight: 600;
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .original-size { font-size: 12px; color: var(--text2); margin-top: 2px; }
-  .btn-reupload {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-family: 'Barlow', sans-serif;
-    cursor: pointer;
-    color: var(--text2);
-    transition: all 0.15s;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .btn-reupload:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* ── PROCESSED RESULT ───────────────────────────────── */
-  .processed-section {
-    display: none;
-    margin-top: 16px;
-  }
-  .processed-section.visible { display: block; }
-  .processed-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 8px;
-  }
-  .processed-canvas-wrap {
+  /* PREVIEW IMG */
+  .img-preview-wrap {
     position: relative;
-    display: inline-block;
-    border-radius: 8px;
+    border-radius: var(--radius);
     overflow: hidden;
-    border: 1px solid var(--border);
-    width: 100%;
+    background: repeating-conic-gradient(#1a1f2e 0% 25%, #141820 0% 50%) 0 0 / 14px 14px;
   }
-  #processedCanvas {
+  .img-preview-wrap img {
+    width: 100%;
     display: block;
-    width: 100%;
-    height: auto;
-    max-height: 180px;
+    max-height: 320px;
     object-fit: contain;
-    background: #fff;
   }
-  .success-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: #dcfce7;
-    color: var(--success);
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 20px;
-    margin-top: 8px;
+  .img-actions {
+    position: absolute; bottom: 10px; right: 10px;
+    display: flex; gap: 6px;
   }
+  .img-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    transition: opacity .2s, transform .15s;
+  }
+  .img-btn:hover { opacity: .85; transform: translateY(-1px); }
+  .img-btn.primary { background: var(--accent); color: #000; }
+  .img-btn.danger { background: var(--danger); color: #fff; }
 
-  /* ── SETTINGS ───────────────────────────────────────── */
-  .settings-grid {
-    display: grid;
-    gap: 14px;
+  /* REMOVE BG STATUS */
+  .bg-status {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius2);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    display: none;
+    align-items: center;
+    gap: 10px;
   }
-  .field-group { display: grid; gap: 5px; }
-  .field-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text2);
+  .bg-status.show { display: flex; }
+  .bg-status.success { background: rgba(79,255,176,0.08); border: 1px solid rgba(79,255,176,0.25); color: var(--accent); }
+  .bg-status.error { background: rgba(255,68,102,0.08); border: 1px solid rgba(255,68,102,0.25); color: var(--danger); }
+  .bg-status.loading { background: rgba(0,200,255,0.08); border: 1px solid rgba(0,200,255,0.25); color: var(--accent2); }
+
+  /* SETTINGS */
+  .settings-col { display: flex; flex-direction: column; gap: 20px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-group:last-child { margin-bottom: 0; }
+  label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    color: var(--text2);
+    margin-bottom: 7px;
   }
-  select, input[type="number"] {
+  select, input[type=number], input[type=text] {
     width: 100%;
-    padding: 9px 12px;
+    background: var(--surface2);
     border: 1px solid var(--border);
-    border-radius: 7px;
-    font-family: 'Barlow', sans-serif;
-    font-size: 14px;
+    border-radius: var(--radius2);
     color: var(--text);
-    background: var(--surface);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 10px 14px;
     outline: none;
-    transition: border-color 0.15s;
+    transition: border-color .2s;
     appearance: none;
     -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a6170' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5568' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 12px center;
+    background-position: right 14px center;
     padding-right: 36px;
     cursor: pointer;
   }
-  input[type="number"] {
-    background-image: none;
-    padding-right: 12px;
-  }
-  select:focus, input[type="number"]:focus {
+  select:focus, input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(27,79,255,0.1);
+    box-shadow: 0 0 0 3px rgba(79,255,176,0.08);
   }
+  input[type=number]::-webkit-inner-spin-button { opacity: .5; }
+
+  .size-display {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: var(--surface3);
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+  }
+
   .custom-size-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 10px;
     display: none;
   }
-  .custom-size-row.visible { display: grid; }
-  .custom-size-row input {
-    background-image: none;
-    padding-right: 12px;
-  }
+  .custom-size-row.show { display: grid; }
 
-  /* ── COPY SELECTOR ──────────────────────────────────── */
-  .copy-options {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+  /* COLOR SYSTEM */
+  .color-system {
+    display: flex;
+    gap: 10px;
+    align-items: center;
   }
-  .copy-btn {
-    padding: 8px 4px;
-    border: 1.5px solid var(--border);
-    border-radius: 7px;
-    background: var(--surface);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text2);
+  .color-picker-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  input[type=color] {
+    width: 46px; height: 40px;
+    padding: 3px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
     cursor: pointer;
+    outline: none;
+  }
+  input[type=color]:focus { border-color: var(--accent); }
+  .color-text {
+    flex: 1;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+  }
+  .color-swatches {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .swatch {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform .15s, border-color .15s;
+    position: relative;
+  }
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.active { border-color: var(--accent); }
+  .swatch[data-color="#ffffff"] { border-color: var(--border); }
+  .swatch-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    margin-top: 4px;
     text-align: center;
-    transition: all 0.15s;
   }
-  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .copy-btn.active {
-    border-color: var(--accent);
-    background: var(--accent);
-    color: #fff;
-  }
+  .swatch-group { text-align: center; }
 
-  /* ── BUTTONS ────────────────────────────────────────── */
+  /* BUTTONS */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 11px 18px;
-    border-radius: 8px;
-    font-family: 'Barlow Semi Condensed', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
+    padding: 12px 22px;
+    border-radius: var(--radius2);
     border: none;
-    transition: all 0.15s;
-    text-decoration: none;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    transition: opacity .2s, transform .15s, box-shadow .2s;
     letter-spacing: 0.3px;
   }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-primary {
-    background: var(--accent);
-    color: #fff;
-    width: 100%;
-  }
-  .btn-primary:hover:not(:disabled) { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(27,79,255,0.3); }
-  .btn-success {
-    background: var(--success);
-    color: #fff;
-    width: 100%;
-  }
-  .btn-success:hover:not(:disabled) { background: #15803d; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(22,163,74,0.3); }
+  .btn:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+  .btn:active:not(:disabled) { transform: translateY(0); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-accent { background: var(--accent); color: #000; box-shadow: 0 4px 20px rgba(79,255,176,0.25); }
+  .btn-blue { background: var(--accent2); color: #000; box-shadow: 0 4px 20px rgba(0,200,255,0.2); }
   .btn-outline {
-    background: none;
+    background: transparent;
     color: var(--text);
-    border: 1.5px solid var(--border);
-    width: 100%;
+    border: 1px solid var(--border2);
   }
   .btn-outline:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-  .btn-lg { padding: 14px 24px; font-size: 16px; }
-  .btn-row { display: grid; gap: 8px; margin-top: 8px; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-full { width: 100%; }
 
-  /* ── PREVIEW PANEL ──────────────────────────────────── */
-  .preview-panel {
-    display: flex;
-    flex-direction: column;
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* SPINNER */
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    display: none;
   }
-  .preview-body {
-    flex: 1;
-    padding: 20px;
+  .spinner.show { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* CANVAS PREVIEW */
+  .canvas-wrap {
+    background: #fff;
+    border-radius: var(--radius);
+    overflow: hidden;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 400px;
-    background: #e8eaf0;
+    min-height: 200px;
     position: relative;
   }
-  .preview-empty {
-    text-align: center;
-    color: var(--text2);
-  }
-  .preview-empty-icon { font-size: 64px; margin-bottom: 12px; display: block; opacity: 0.4; }
-  .preview-empty-text {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    opacity: 0.5;
-    margin-bottom: 4px;
-  }
-  .preview-empty-sub { font-size: 13px; opacity: 0.4; }
-  
-  #layoutCanvas {
+  canvas#previewCanvas {
+    display: block;
     max-width: 100%;
-    max-height: calc(100vh - 200px);
     border-radius: 4px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-    display: none;
-    background: #fff;
   }
-  
-  .preview-meta {
-    margin-top: 12px;
+  .canvas-placeholder {
     display: flex;
-    gap: 16px;
+    flex-direction: column;
     align-items: center;
-    flex-wrap: wrap;
     justify-content: center;
-  }
-  .meta-pill {
-    background: rgba(255,255,255,0.7);
-    border: 1px solid rgba(255,255,255,0.9);
-    padding: 4px 12px;
-    border-radius: 20px;
+    gap: 12px;
+    padding: 48px;
+    color: #999;
+    font-family: 'DM Mono', monospace;
     font-size: 12px;
-    font-weight: 600;
+    text-align: center;
+  }
+  .canvas-placeholder .ph-icon { font-size: 36px; opacity: .4; }
+
+  /* CANVAS STATS */
+  .canvas-stats {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .stat-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
     color: var(--text2);
   }
-  .meta-pill strong { color: var(--text); }
+  .stat-chip span { color: var(--accent2); }
 
-  /* ── LOADING OVERLAY ─────────────────────────────────── */
-  .loading-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(10, 12, 20, 0.75);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 20px;
+  /* GUIDELINES */
+  .guideline-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 0;
   }
-  .loading-overlay.visible { display: flex; }
-  .spinner {
-    width: 52px; height: 52px;
-    border: 4px solid rgba(255,255,255,0.15);
-    border-top-color: var(--accent);
+  @media (max-width: 600px) { .guideline-grid { grid-template-columns: 1fr; } }
+  .guide-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    background: var(--surface2);
+    border-radius: var(--radius2);
+    border: 1px solid var(--border);
+  }
+  .guide-dot {
+    width: 6px; height: 6px;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    background: var(--accent);
+    flex-shrink: 0;
+    margin-top: 5px;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text {
-    color: #fff;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+  .guide-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.5;
   }
-  .loading-sub {
-    color: rgba(255,255,255,0.5);
-    font-size: 13px;
-    text-align: center;
-    max-width: 260px;
-  }
+  .guide-text strong { color: var(--text); font-weight: 500; display: block; margin-bottom: 2px; }
 
-  /* ── TOAST ───────────────────────────────────────────── */
-  .toast-container {
+  /* DOWNLOAD SECTION */
+  .download-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .dl-card {
+    padding: 18px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, transform .15s, box-shadow .2s;
+  }
+  .dl-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--glow); }
+  .dl-card:disabled { opacity: .4; pointer-events: none; }
+  .dl-icon { font-size: 28px; margin-bottom: 8px; }
+  .dl-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .dl-desc { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); }
+
+  /* TOAST */
+  #toast-container {
     position: fixed;
-    top: 68px;
-    right: 20px;
-    z-index: 2000;
+    bottom: 30px;
+    right: 24px;
+    z-index: 9999;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    pointer-events: none;
   }
   .toast {
-    background: var(--text);
-    color: #fff;
     padding: 12px 18px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: var(--shadow-lg);
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    max-width: 320px;
+    animation: toast-in .3s ease;
+    pointer-events: all;
+  }
+  .toast.success { background: #0a2e1a; border: 1px solid var(--accent); color: var(--accent); }
+  .toast.error { background: #2e0a14; border: 1px solid var(--danger); color: var(--danger); }
+  .toast.info { background: #0a1e2e; border: 1px solid var(--accent2); color: var(--accent2); }
+  @keyframes toast-in { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: none; } }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* SECTION SPACING */
+  .left-col { display: flex; flex-direction: column; gap: 20px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* MOBILE */
+  @media (max-width: 600px) {
+    .btn-row { flex-direction: column; }
+    .download-grid { grid-template-columns: 1fr; }
+    .color-system { flex-wrap: wrap; }
+  }
+
+  /* LOADING OVERLAY */
+  #global-loader {
+    position: fixed; inset: 0;
+    background: rgba(10,11,15,0.85);
+    backdrop-filter: blur(6px);
+    z-index: 8888;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+  #global-loader.show { display: flex; }
+  .loader-ring {
+    width: 56px; height: 56px;
+    border: 3px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  .loader-msg { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text2); }
+
+  /* PAPER SIZE VISUAL */
+  .paper-vis {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: var(--surface3);
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
     display: flex;
     align-items: center;
     gap: 10px;
-    animation: toastIn 0.3s ease, toastOut 0.3s ease 3.7s forwards;
-    max-width: 320px;
   }
-  .toast.error { background: var(--danger); }
-  .toast.success { background: var(--success); }
-  .toast.warning { background: var(--warning); }
-  @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } }
-  @keyframes toastOut { to { opacity: 0; transform: translateX(20px); } }
-
-  /* ── INFO BOX ────────────────────────────────────────── */
-  .info-box {
-    background: var(--accent-light);
-    border: 1px solid rgba(27,79,255,0.2);
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 13px;
-    color: #1238d6;
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
-    line-height: 1.5;
+  .paper-vis-box {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    flex-shrink: 0;
   }
 
-  /* ── DIVIDER ─────────────────────────────────────────── */
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 16px 0;
+  /* QUANTITY NOTICE */
+  .qty-notice {
+    margin-top: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    padding: 6px 10px;
+    background: var(--surface3);
+    border-radius: 4px;
   }
-
-  /* ── RESPONSIVE ──────────────────────────────────────── */
-  @media (max-width: 900px) {
-    .app-layout {
-      grid-template-columns: 1fr;
-    }
-    .preview-body {
-      min-height: 300px;
-    }
-    #layoutCanvas {
-      max-height: 50vw;
-    }
-  }
-  @media (max-width: 480px) {
-    header { padding: 0 16px; }
-    .app-layout { padding: 12px; gap: 12px; }
-    .panel-body { padding: 14px; }
-    .copy-options { grid-template-columns: repeat(4, 1fr); }
-  }
-
-  /* ── SCROLLBAR ───────────────────────────────────────── */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: #c5cad3; border-radius: 3px; }
+  .qty-fit { color: var(--accent); }
+  .qty-warn { color: var(--warn); }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-  <div class="logo">
-    <div class="logo-icon">📸</div>
-    Photo<span>Pass</span> Pro
-  </div>
-  <div class="header-badge">Passport Photo Generator</div>
-</header>
-
-<!-- TOAST CONTAINER -->
-<div class="toast-container" id="toastContainer"></div>
-
-<!-- LOADING OVERLAY -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loadingText">Removing Background…</div>
-  <div class="loading-sub" id="loadingSub">Powered by Remove.bg AI — this takes a few seconds</div>
+<div id="global-loader">
+  <div class="loader-ring"></div>
+  <div class="loader-msg" id="loader-msg">Removing background…</div>
 </div>
 
-<!-- MAIN LAYOUT -->
-<div class="app-layout">
+<div id="toast-container"></div>
 
-  <!-- LEFT: CONTROL PANEL -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
+<div class="wrapper">
 
-    <!-- STEP 1: UPLOAD -->
-    <div class="panel">
-      <div class="panel-header">
-        <div class="step-badge" id="step1Badge">1</div>
-        <div class="panel-title">Upload Photo</div>
-      </div>
-      <div class="panel-body">
-        <div class="upload-zone" id="uploadZone">
-          <input type="file" id="fileInput" accept="image/*">
-          <span class="upload-icon">🖼️</span>
-          <div class="upload-title">Drop Image Here</div>
-          <div class="upload-hint">or click to browse · JPG, PNG, WEBP · Max 12MB</div>
-        </div>
-
-        <div class="original-preview" id="originalPreview">
-          <img class="original-thumb" id="originalThumb" src="" alt="Original">
-          <div class="original-info">
-            <div class="original-name" id="originalName">—</div>
-            <div class="original-size" id="originalSize">—</div>
-          </div>
-          <button class="btn-reupload" onclick="resetUpload()">Change</button>
-        </div>
-
-        <div class="processed-section" id="processedSection">
-          <div class="divider"></div>
-          <div class="processed-label">Background Removed</div>
-          <div class="processed-canvas-wrap">
-            <canvas id="processedCanvas" width="350" height="250"></canvas>
-          </div>
-          <div class="success-pill">✓ Background removed · White applied</div>
-        </div>
-
-        <button class="btn btn-primary" style="margin-top:14px;" id="btnProcess" onclick="processImage()" disabled>
-          ✨ Remove Background & Process
-        </button>
+  <header>
+    <div class="logo">
+      <div class="logo-icon">📷</div>
+      <div>
+        <div class="logo-text">Passport<span>Forge</span></div>
+        <div class="logo-sub">Professional Photo Generator</div>
       </div>
     </div>
+    <div class="badge">300 DPI READY</div>
+  </header>
 
-    <!-- STEP 2: SETTINGS -->
-    <div class="panel">
-      <div class="panel-header">
-        <div class="step-badge" id="step2Badge">2</div>
-        <div class="panel-title">Photo Settings</div>
+  <div class="steps-bar">
+    <div class="step-chip active" id="chip1"><div class="step-num">1</div>Upload Photo</div>
+    <div class="step-chip" id="chip2"><div class="step-num">2</div>Remove Background</div>
+    <div class="step-chip" id="chip3"><div class="step-num">3</div>Configure Settings</div>
+    <div class="step-chip" id="chip4"><div class="step-num">4</div>Preview & Download</div>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+
+      <!-- UPLOAD CARD -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📁</div>
+          <div>
+            <div class="card-title">Upload Photo</div>
+            <div class="card-sub">JPG · PNG · WEBP</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp" />
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-title">Drop your photo here</div>
+            <div class="upload-hint">or click to browse files</div>
+            <div class="upload-formats">
+              <span class="fmt-tag">JPG</span>
+              <span class="fmt-tag">PNG</span>
+              <span class="fmt-tag">WEBP</span>
+            </div>
+          </div>
+
+          <div id="imgPreviewContainer" style="display:none; margin-top:16px;">
+            <div class="img-preview-wrap">
+              <img id="imgPreview" src="" alt="Preview" />
+              <div class="img-actions">
+                <button class="img-btn primary" id="removeBgBtn">Remove BG</button>
+                <button class="img-btn danger" id="clearImgBtn">✕</button>
+              </div>
+            </div>
+            <div class="bg-status" id="bgStatus">
+              <span id="bgStatusDot">⏳</span>
+              <span id="bgStatusMsg">Processing…</span>
+            </div>
+          </div>
+
+          <!-- BACKGROUND COLOR -->
+          <div style="margin-top: 20px;">
+            <label>Background Color</label>
+            <div class="color-system">
+              <input type="color" id="bgColorPicker" value="#ffffff" />
+              <input type="text" id="bgColorText" value="#ffffff" placeholder="#ffffff or rgb(255,255,255)" class="color-text" />
+            </div>
+            <div class="color-swatches" id="colorSwatches"></div>
+          </div>
+        </div>
       </div>
-      <div class="panel-body">
-        <div class="settings-grid">
 
-          <div class="field-group">
-            <div class="field-label">Photo Size</div>
-            <select id="photoSize" onchange="onPhotoSizeChange()">
-              <option value="india_passport">🇮🇳 India Passport — 35×45 mm</option>
-              <option value="us_visa">🇺🇸 US Visa — 2×2 inch (51×51 mm)</option>
-              <option value="custom">✏️ Custom Size</option>
+      <!-- GUIDELINES CARD -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📋</div>
+          <div>
+            <div class="card-title">Key Requirements</div>
+            <div class="card-sub">Official passport photo guidelines</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="guideline-grid">
+            <div class="guide-item">
+              <div class="guide-dot"></div>
+              <div class="guide-text"><strong>Background</strong>Plain white or off-white preferred</div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-dot"></div>
+              <div class="guide-text"><strong>Resolution</strong>Minimum 300 DPI for print</div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-dot"></div>
+              <div class="guide-text"><strong>Digital Size</strong>20 KB – 100 KB file size</div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-dot"></div>
+              <div class="guide-text"><strong>Pixel Range</strong>413×531 px to 600×600 px</div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-dot"></div>
+              <div class="guide-text"><strong>Head Position</strong>Centered, facing forward</div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-dot"></div>
+              <div class="guide-text"><strong>Head Coverage</strong>70–80% of image height</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="settings-col">
+
+      <!-- SETTINGS CARD -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">⚙️</div>
+          <div>
+            <div class="card-title">Photo Settings</div>
+            <div class="card-sub">Configure size, paper & quantity</div>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <!-- PHOTO SIZE -->
+          <div class="form-group">
+            <label>Photo Size</label>
+            <select id="photoSizeSelect">
+              <optgroup label="Passport, Visa & OCI (Standard)">
+                <option value="35x45">35mm × 45mm — Standard Passport</option>
+              </optgroup>
+              <optgroup label="Alternative / Older Formats">
+                <option value="51x51">2 inch × 2 inch (51mm × 51mm)</option>
+              </optgroup>
+              <optgroup label="Stamp Size Photos">
+                <option value="25x35">25mm × 35mm — Stamp Size</option>
+              </optgroup>
+              <optgroup label="Specific Visa Requirements">
+                <option value="50x50">50mm × 50mm</option>
+                <option value="51x51b">51mm × 51mm</option>
+              </optgroup>
+              <optgroup label="Custom">
+                <option value="custom">Custom Size…</option>
+              </optgroup>
             </select>
+            <div class="size-display" id="sizeDisplay">📐 35mm × 45mm selected</div>
             <div class="custom-size-row" id="customSizeRow">
-              <div class="field-group">
-                <div class="field-label">Width (mm)</div>
-                <input type="number" id="customW" value="35" min="10" max="200" placeholder="Width">
+              <div>
+                <label>Width (mm)</label>
+                <input type="number" id="customW" value="35" min="10" max="200" />
               </div>
-              <div class="field-group">
-                <div class="field-label">Height (mm)</div>
-                <input type="number" id="customH" value="45" min="10" max="200" placeholder="Height">
+              <div>
+                <label>Height (mm)</label>
+                <input type="number" id="customH" value="45" min="10" max="200" />
               </div>
             </div>
           </div>
 
-          <div class="field-group">
-            <div class="field-label">Paper Size</div>
-            <select id="paperSize">
-              <option value="a4">A4 — 210×297 mm</option>
-              <option value="letter">Letter — 216×279 mm</option>
-              <option value="a5">A5 — 148×210 mm</option>
-              <option value="4x6">4×6 inch — 102×152 mm</option>
+          <!-- PAPER SIZE -->
+          <div class="form-group">
+            <label>Paper Size</label>
+            <select id="paperSizeSelect">
+              <option value="a4">A4 — 210 × 297 mm</option>
+              <option value="letter">Letter — 216 × 279 mm</option>
+              <option value="a5">A5 — 148 × 210 mm</option>
+              <option value="4x6">4×6 inch — 102 × 152 mm</option>
             </select>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Number of Copies</div>
-            <div class="copy-options">
-              <div class="copy-btn active" data-val="4" onclick="selectCopies(this)">4</div>
-              <div class="copy-btn" data-val="8" onclick="selectCopies(this)">8</div>
-              <div class="copy-btn" data-val="12" onclick="selectCopies(this)">12</div>
-              <div class="copy-btn" data-val="16" onclick="selectCopies(this)">16</div>
+            <div class="paper-vis" id="paperVis">
+              <div class="paper-vis-box" id="paperVisBox" style="width:18px;height:25px;"></div>
+              <span id="paperVisLabel">A4: 210 × 297 mm · Portrait</span>
             </div>
           </div>
 
-        </div>
+          <!-- QUANTITY -->
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" id="quantityInput" value="6" min="1" max="999" />
+            <div class="qty-notice" id="qtyNotice">Enter any quantity from 1 to 999+</div>
+          </div>
 
-        <div class="divider"></div>
-
-        <button class="btn btn-outline" id="btnGenerate" onclick="generateLayout()" disabled>
-          👁️ Generate Preview
-        </button>
-      </div>
-    </div>
-
-    <!-- STEP 3: DOWNLOAD -->
-    <div class="panel">
-      <div class="panel-header">
-        <div class="step-badge" id="step3Badge">3</div>
-        <div class="panel-title">Download</div>
-      </div>
-      <div class="panel-body">
-        <div class="info-box" style="margin-bottom:14px;">
-          ℹ️ High quality PDF at 300 DPI simulation — ready for print at any photo studio or home printer.
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-success btn-lg" id="btnDownloadPDF" onclick="downloadPDF()" disabled>
-            ⬇️ Download PDF — Print Ready
+          <button class="btn btn-accent btn-full" id="generateBtn" disabled>
+            <span class="spinner" id="generateSpinner"></span>
+            Generate Preview
           </button>
-          <button class="btn btn-outline" id="btnDownloadImg" onclick="downloadImage()" disabled>
-            🖼️ Download as PNG Image
-          </button>
+
         </div>
       </div>
-    </div>
 
-  </div>
-
-  <!-- RIGHT: PREVIEW PANEL -->
-  <div class="panel preview-panel">
-    <div class="panel-header">
-      <div class="panel-title">📄 Live Layout Preview</div>
-      <div id="previewInfoPill" style="margin-left:auto;font-size:12px;color:var(--text2);font-weight:600;"></div>
-    </div>
-    <div class="preview-body" id="previewBody">
-      <div class="preview-empty" id="previewEmpty">
-        <span class="preview-empty-icon">📋</span>
-        <div class="preview-empty-text">Layout Preview</div>
-        <div class="preview-empty-sub">Upload a photo and generate layout to see preview</div>
+      <!-- PREVIEW CARD -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">👁️</div>
+          <div>
+            <div class="card-title">Live Preview</div>
+            <div class="card-sub">Real-time canvas layout</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="canvas-wrap" id="canvasWrap">
+            <div class="canvas-placeholder" id="canvasPlaceholder">
+              <div class="ph-icon">🗒️</div>
+              <div>Upload a photo and click<br/><strong>Generate Preview</strong> to see layout</div>
+            </div>
+            <canvas id="previewCanvas" style="display:none;"></canvas>
+          </div>
+          <div class="canvas-stats" id="canvasStats" style="display:none;">
+            <div class="stat-chip">Photos: <span id="statPhotos">—</span></div>
+            <div class="stat-chip">Cols×Rows: <span id="statGrid">—</span></div>
+            <div class="stat-chip">Paper: <span id="statPaper">—</span></div>
+            <div class="stat-chip">Size: <span id="statSize">—</span></div>
+          </div>
+        </div>
       </div>
-      <canvas id="layoutCanvas"></canvas>
-      <div class="preview-meta" id="previewMeta" style="display:none;"></div>
+
+      <!-- DOWNLOAD CARD -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">⬇️</div>
+          <div>
+            <div class="card-title">Download</div>
+            <div class="card-sub">Print-ready 300 DPI output</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="download-grid">
+            <button class="dl-card" id="dlPdfBtn" disabled onclick="downloadPDF()">
+              <div class="dl-icon">📄</div>
+              <div class="dl-title">Download PDF</div>
+              <div class="dl-desc">Print-ready · jsPDF</div>
+            </button>
+            <button class="dl-card" id="dlPngBtn" disabled onclick="downloadPNG()">
+              <div class="dl-icon">🖼️</div>
+              <div class="dl-title">Download PNG</div>
+              <div class="dl-desc">High-res · 300 DPI</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
 </div>
-
-<!-- Hidden canvases for processing -->
-<canvas id="workCanvas" style="display:none;"></canvas>
 
 <script>
-'use strict';
-
-// ─────────────────────────────────────────────
-//  CONSTANTS
-// ─────────────────────────────────────────────
-const API_KEY = 'Q6Jk2XdvvcsXCnJ3U6HTWK2F';
-const REMOVE_BG_URL = 'https://api.remove.bg/v1.0/removebg';
-const MARGIN_MM = 5;   // margin around paper edge
-const GAP_MM    = 3;   // gap between photos
-const PRINT_DPI = 300;
-
-const PHOTO_SIZES = {
-  india_passport: { w: 35,   h: 45,   label: 'India Passport 35×45mm' },
-  us_visa:        { w: 50.8, h: 50.8, label: 'US Visa 51×51mm' },
-  custom:         { w: 35,   h: 45,   label: 'Custom' }
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  originalFile: null,
+  originalDataURL: null,
+  processedDataURL: null,   // after BG removal
+  finalDataURL: null,       // processed + bg color applied
+  bgColor: '#ffffff',
+  photoSize: { w: 35, h: 45 },
+  paperSize: { w: 210, h: 297, label: 'A4' },
+  quantity: 6,
+  layoutReady: false,
+  highResCanvas: null,
 };
+
+const REMOVE_BG_KEY = 'Q6Jk2XdvvcsXCnJ3U6HTWK2F';
 
 const PAPER_SIZES = {
-  a4:     { w: 210,   h: 297,   label: 'A4' },
-  letter: { w: 215.9, h: 279.4, label: 'Letter' },
-  a5:     { w: 148,   h: 210,   label: 'A5' },
-  '4x6':  { w: 101.6, h: 152.4, label: '4×6 inch' }
+  a4:     { w: 210, h: 297, label: 'A4' },
+  letter: { w: 216, h: 279, label: 'Letter' },
+  a5:     { w: 148, h: 210, label: 'A5' },
+  '4x6':  { w: 102, h: 152, label: '4×6 inch' },
 };
 
-// ─────────────────────────────────────────────
-//  STATE
-// ─────────────────────────────────────────────
-let state = {
-  originalFile:      null,
-  originalDataURL:   null,
-  processedDataURL:  null,  // white-bg passport photo
-  copies:            4,
-  layoutGenerated:   false
+const PHOTO_SIZES = {
+  '35x45':  { w: 35, h: 45,  label: '35×45mm Standard Passport' },
+  '51x51':  { w: 51, h: 51,  label: '51×51mm (2 inch × 2 inch)' },
+  '25x35':  { w: 25, h: 35,  label: '25×35mm Stamp Size' },
+  '50x50':  { w: 50, h: 50,  label: '50×50mm Visa' },
+  '51x51b': { w: 51, h: 51,  label: '51×51mm Specific Visa' },
 };
 
-// ─────────────────────────────────────────────
-//  UTILITY
-// ─────────────────────────────────────────────
-function mm2px(mm, dpi = 96) { return mm * dpi / 25.4; }
-function px2mm(px, dpi = 96) { return px * 25.4 / dpi; }
-function fmt(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
-  return (bytes/1048576).toFixed(1) + ' MB';
-}
+const SWATCHES = [
+  { color: '#ffffff', label: 'White' },
+  { color: '#f5f0e8', label: 'Off-White' },
+  { color: '#e8f0f5', label: 'Light Blue' },
+  { color: '#dbe9d8', label: 'Pale Green' },
+  { color: '#f5e8e8', label: 'Soft Pink' },
+  { color: '#e8e8f5', label: 'Lavender' },
+  { color: '#f0f0f0', label: 'Light Grey' },
+  { color: '#003580', label: 'Blue' },
+];
 
-function showToast(msg, type = 'default', icon = '') {
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.innerHTML = `${icon || (type==='error'?'❌':type==='success'?'✅':type==='warning'?'⚠️':'ℹ️')} ${msg}`;
-  document.getElementById('toastContainer').appendChild(el);
-  setTimeout(() => el.remove(), 4200);
-}
-
-function showLoading(text, sub = '') {
-  document.getElementById('loadingText').textContent = text;
-  document.getElementById('loadingSub').textContent = sub || '';
-  document.getElementById('loadingOverlay').classList.add('visible');
-}
-function hideLoading() {
-  document.getElementById('loadingOverlay').classList.remove('visible');
-}
-
-function setStep1Done() {
-  document.getElementById('step1Badge').classList.add('done');
-  document.getElementById('step1Badge').textContent = '✓';
-}
-function setStep2Done() {
-  document.getElementById('step2Badge').classList.add('done');
-  document.getElementById('step2Badge').textContent = '✓';
-}
-function setStep3Done() {
-  document.getElementById('step3Badge').classList.add('done');
-  document.getElementById('step3Badge').textContent = '✓';
-}
-
-// ─────────────────────────────────────────────
-//  UPLOAD HANDLING
-// ─────────────────────────────────────────────
-const uploadZone = document.getElementById('uploadZone');
-const fileInput  = document.getElementById('fileInput');
-
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
-uploadZone.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadZone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file) handleFile(file);
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  initSwatches();
+  initUpload();
+  initSettings();
+  initColorPicker();
+  updatePaperVis();
+  updateSizeDisplay();
 });
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) handleFile(fileInput.files[0]);
-});
+
+// ============================================================
+// SWATCHES
+// ============================================================
+function initSwatches() {
+  const container = document.getElementById('colorSwatches');
+  SWATCHES.forEach(s => {
+    const wrap = document.createElement('div');
+    wrap.className = 'swatch-group';
+    const sw = document.createElement('div');
+    sw.className = 'swatch' + (s.color === '#ffffff' ? ' active' : '');
+    sw.style.background = s.color;
+    sw.dataset.color = s.color;
+    sw.title = s.label;
+    sw.addEventListener('click', () => {
+      setColor(s.color);
+      document.querySelectorAll('.swatch').forEach(x => x.classList.remove('active'));
+      sw.classList.add('active');
+    });
+    const lbl = document.createElement('div');
+    lbl.className = 'swatch-label';
+    lbl.textContent = s.label;
+    wrap.appendChild(sw);
+    wrap.appendChild(lbl);
+    container.appendChild(wrap);
+  });
+}
+
+// ============================================================
+// COLOR PICKER
+// ============================================================
+function initColorPicker() {
+  const picker = document.getElementById('bgColorPicker');
+  const txt = document.getElementById('bgColorText');
+
+  picker.addEventListener('input', () => {
+    setColor(picker.value, true);
+  });
+  txt.addEventListener('change', () => {
+    const v = parseColorInput(txt.value);
+    if (v) {
+      setColor(v, false, true);
+    } else {
+      showToast('Invalid color format', 'error');
+    }
+  });
+}
+
+function parseColorInput(val) {
+  val = val.trim();
+  if (/^#[0-9a-fA-F]{3,6}$/.test(val)) return val;
+  const rgb = val.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+  if (rgb) {
+    return '#' + [rgb[1],rgb[2],rgb[3]].map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
+  }
+  return null;
+}
+
+function setColor(hex, fromPicker=false, fromText=false) {
+  state.bgColor = hex;
+  if (!fromPicker) document.getElementById('bgColorPicker').value = hex;
+  if (!fromText) document.getElementById('bgColorText').value = hex;
+  // re-apply bg if processed image exists
+  if (state.processedDataURL) {
+    applyBackgroundColor(state.processedDataURL, hex).then(url => {
+      state.finalDataURL = url;
+      if (state.layoutReady) regeneratePreviewSilent();
+    });
+  }
+}
+
+// ============================================================
+// UPLOAD
+// ============================================================
+function initUpload() {
+  const zone = document.getElementById('uploadZone');
+  const input = document.getElementById('fileInput');
+
+  zone.addEventListener('click', () => input.click());
+  input.addEventListener('change', () => {
+    if (input.files[0]) handleFile(input.files[0]);
+  });
+
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  });
+
+  document.getElementById('clearImgBtn').addEventListener('click', clearImage);
+  document.getElementById('removeBgBtn').addEventListener('click', triggerRemoveBg);
+}
 
 function handleFile(file) {
-  if (!file.type.startsWith('image/')) {
-    showToast('Please upload a valid image file (JPG, PNG, WEBP).', 'error');
+  const allowed = ['image/jpeg','image/png','image/webp'];
+  if (!allowed.includes(file.type)) {
+    showToast('Invalid file type. Use JPG, PNG or WEBP.', 'error');
     return;
   }
-  if (file.size > 12 * 1024 * 1024) {
-    showToast('File too large. Max size is 12MB.', 'error');
-    return;
-  }
-
   state.originalFile = file;
-  state.processedDataURL = null;
-  state.layoutGenerated = false;
-
   const reader = new FileReader();
   reader.onload = e => {
     state.originalDataURL = e.target.result;
-
-    // Show original preview
-    document.getElementById('originalThumb').src = e.target.result;
-    document.getElementById('originalName').textContent = file.name;
-    document.getElementById('originalSize').textContent = `${file.type.split('/')[1].toUpperCase()} · ${fmt(file.size)}`;
-    document.getElementById('originalPreview').classList.add('visible');
-    uploadZone.style.display = 'none';
-    document.getElementById('processedSection').classList.remove('visible');
-    document.getElementById('btnProcess').disabled = false;
-    document.getElementById('btnGenerate').disabled = true;
-    document.getElementById('btnDownloadPDF').disabled = true;
-    document.getElementById('btnDownloadImg').disabled = true;
-
-    // Reset preview
-    document.getElementById('layoutCanvas').style.display = 'none';
-    document.getElementById('previewEmpty').style.display = 'block';
-    document.getElementById('previewMeta').style.display = 'none';
-    document.getElementById('previewInfoPill').textContent = '';
-
-    resetBadges();
+    state.processedDataURL = null;
+    state.finalDataURL = e.target.result;
+    document.getElementById('imgPreview').src = e.target.result;
+    document.getElementById('imgPreviewContainer').style.display = 'block';
+    document.getElementById('bgStatus').className = 'bg-status';
+    setStepActive(2);
+    checkGenerateReady();
   };
   reader.readAsDataURL(file);
 }
 
-function resetUpload() {
+function clearImage() {
   state.originalFile = null;
   state.originalDataURL = null;
   state.processedDataURL = null;
-  state.layoutGenerated = false;
-  fileInput.value = '';
-  uploadZone.style.display = '';
-  document.getElementById('originalPreview').classList.remove('visible');
-  document.getElementById('processedSection').classList.remove('visible');
-  document.getElementById('btnProcess').disabled = true;
-  document.getElementById('btnGenerate').disabled = true;
-  document.getElementById('btnDownloadPDF').disabled = true;
-  document.getElementById('btnDownloadImg').disabled = true;
-  document.getElementById('layoutCanvas').style.display = 'none';
-  document.getElementById('previewEmpty').style.display = 'block';
-  document.getElementById('previewMeta').style.display = 'none';
-  document.getElementById('previewInfoPill').textContent = '';
-  resetBadges();
+  state.finalDataURL = null;
+  state.layoutReady = false;
+  document.getElementById('imgPreview').src = '';
+  document.getElementById('imgPreviewContainer').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('bgStatus').className = 'bg-status';
+  hidePreview();
+  document.getElementById('generateBtn').disabled = true;
+  setStepActive(1);
 }
 
-function resetBadges() {
-  ['step1Badge','step2Badge','step3Badge'].forEach(id => {
-    const el = document.getElementById(id);
-    el.classList.remove('done');
-    el.textContent = id.replace('step','').replace('Badge','');
-  });
-}
-
-// ─────────────────────────────────────────────
-//  REMOVE.BG API CALL
-// ─────────────────────────────────────────────
-async function processImage() {
+// ============================================================
+// REMOVE BG
+// ============================================================
+async function triggerRemoveBg() {
   if (!state.originalFile) return;
-  document.getElementById('btnProcess').disabled = true;
-
-  showLoading('Removing Background…', 'Sending to Remove.bg AI — please wait');
+  showLoader('Removing background with Remove.bg…');
+  setBgStatus('loading', '⏳', 'Contacting Remove.bg API…');
 
   try {
     const formData = new FormData();
     formData.append('image_file', state.originalFile);
     formData.append('size', 'auto');
-    formData.append('format', 'png');
 
-    const res = await fetch(REMOVE_BG_URL, {
+    const res = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
-      headers: { 'X-Api-Key': API_KEY },
-      body: formData
+      headers: { 'X-Api-Key': REMOVE_BG_KEY },
+      body: formData,
     });
 
     if (!res.ok) {
-      let errMsg = 'Background removal failed.';
-      try {
-        const errJson = await res.json();
-        if (errJson.errors && errJson.errors[0]) {
-          errMsg = errJson.errors[0].title || errMsg;
-        }
-      } catch(_){}
-      if (res.status === 402) errMsg = 'Remove.bg API credit limit reached.';
-      if (res.status === 403) errMsg = 'Invalid Remove.bg API key.';
-      throw new Error(errMsg);
+      let msg = `API error ${res.status}`;
+      try { const j = await res.json(); msg = j.errors?.[0]?.title || msg; } catch {}
+      throw new Error(msg);
     }
 
     const blob = await res.blob();
-    showLoading('Processing…', 'Applying white background and centering face');
+    const url = URL.createObjectURL(blob);
+    const dataURL = await blobToDataURL(blob);
+    state.processedDataURL = dataURL;
 
-    const bgRemovedURL = await blobToDataURL(blob);
-    state.processedDataURL = await applyWhiteBackground(bgRemovedURL, getPhotoSize());
+    const withBg = await applyBackgroundColor(dataURL, state.bgColor);
+    state.finalDataURL = withBg;
+    document.getElementById('imgPreview').src = withBg;
 
-    // Show processed preview
-    showProcessedPreview(state.processedDataURL);
-    hideLoading();
-
-    setStep1Done();
-    document.getElementById('btnGenerate').disabled = false;
-    showToast('Background removed successfully!', 'success');
-
-    // Auto-generate layout
-    generateLayout();
-
+    setBgStatus('success', '✅', 'Background removed successfully!');
+    setStepActive(3);
+    showToast('Background removed!', 'success');
+    checkGenerateReady();
   } catch (err) {
-    hideLoading();
-    document.getElementById('btnProcess').disabled = false;
-    console.error(err);
-    showToast(err.message || 'Failed to remove background. Check your network and API key.', 'error');
+    setBgStatus('error', '❌', 'Error: ' + err.message);
+    showToast('BG removal failed: ' + err.message, 'error');
+    // still allow generating with original
+    checkGenerateReady();
+  } finally {
+    hideLoader();
   }
 }
 
-// ─────────────────────────────────────────────
-//  IMAGE PROCESSING
-// ─────────────────────────────────────────────
+function setBgStatus(type, icon, msg) {
+  const el = document.getElementById('bgStatus');
+  el.className = 'bg-status show ' + type;
+  document.getElementById('bgStatusDot').textContent = icon;
+  document.getElementById('bgStatusMsg').textContent = msg;
+}
+
 function blobToDataURL(blob) {
   return new Promise((res, rej) => {
-    const reader = new FileReader();
-    reader.onload = e => res(e.target.result);
-    reader.onerror = () => rej(new Error('Failed to read blob'));
-    reader.readAsDataURL(blob);
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(blob);
   });
+}
+
+// ============================================================
+// APPLY BACKGROUND COLOR
+// ============================================================
+function applyBackgroundColor(dataURL, hex) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = hex;
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0);
+      res(c.toDataURL('image/png'));
+    };
+    img.onerror = rej;
+    img.src = dataURL;
+  });
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function initSettings() {
+  const photoSel = document.getElementById('photoSizeSelect');
+  const paperSel = document.getElementById('paperSizeSelect');
+  const qty = document.getElementById('quantityInput');
+  const customW = document.getElementById('customW');
+  const customH = document.getElementById('customH');
+
+  photoSel.addEventListener('change', () => {
+    updateSizeDisplay();
+    updateQtyNotice();
+  });
+  paperSel.addEventListener('change', () => {
+    updatePaperVis();
+    updateQtyNotice();
+  });
+  qty.addEventListener('input', updateQtyNotice);
+  customW.addEventListener('input', updateSizeDisplay);
+  customH.addEventListener('input', updateSizeDisplay);
+
+  document.getElementById('generateBtn').addEventListener('click', generatePreview);
+}
+
+function updateSizeDisplay() {
+  const sel = document.getElementById('photoSizeSelect').value;
+  const disp = document.getElementById('sizeDisplay');
+  const customRow = document.getElementById('customSizeRow');
+
+  if (sel === 'custom') {
+    customRow.classList.add('show');
+    const w = parseFloat(document.getElementById('customW').value) || 35;
+    const h = parseFloat(document.getElementById('customH').value) || 45;
+    state.photoSize = { w, h };
+    disp.textContent = `📐 ${w}mm × ${h}mm (custom)`;
+  } else {
+    customRow.classList.remove('show');
+    const ps = PHOTO_SIZES[sel];
+    if (ps) {
+      state.photoSize = { w: ps.w, h: ps.h };
+      disp.textContent = `📐 ${ps.label}`;
+    }
+  }
+}
+
+function updatePaperVis() {
+  const sel = document.getElementById('paperSizeSelect').value;
+  const ps = PAPER_SIZES[sel];
+  state.paperSize = ps;
+  document.getElementById('paperVisLabel').textContent = `${ps.label}: ${ps.w} × ${ps.h} mm`;
+
+  // Proportional mini preview
+  const maxW = 28, maxH = 36;
+  const ratio = ps.w / ps.h;
+  let bw, bh;
+  if (ratio > maxW/maxH) { bw = maxW; bh = Math.round(maxW / ratio); }
+  else { bh = maxH; bw = Math.round(maxH * ratio); }
+  document.getElementById('paperVisBox').style.width = bw + 'px';
+  document.getElementById('paperVisBox').style.height = bh + 'px';
+
+  updateQtyNotice();
+}
+
+function getPhotoSize() {
+  const sel = document.getElementById('photoSizeSelect').value;
+  if (sel === 'custom') {
+    return {
+      w: parseFloat(document.getElementById('customW').value) || 35,
+      h: parseFloat(document.getElementById('customH').value) || 45,
+    };
+  }
+  return PHOTO_SIZES[sel] || { w: 35, h: 45 };
+}
+
+function calcLayout(photoW, photoH, paperW, paperH) {
+  const margin = 5; // mm margin
+  const gap = 3;    // mm gap between photos
+  const usableW = paperW - margin * 2;
+  const usableH = paperH - margin * 2;
+  const cols = Math.floor((usableW + gap) / (photoW + gap));
+  const rows = Math.floor((usableH + gap) / (photoH + gap));
+  return { cols: Math.max(cols, 1), rows: Math.max(rows, 1) };
+}
+
+function updateQtyNotice() {
+  const ps = getPhotoSize();
+  const paper = PAPER_SIZES[document.getElementById('paperSizeSelect').value];
+  const layout = calcLayout(ps.w, ps.h, paper.w, paper.h);
+  const perPage = layout.cols * layout.rows;
+  const qty = parseInt(document.getElementById('quantityInput').value) || 1;
+  const pages = Math.ceil(qty / perPage);
+  const notice = document.getElementById('qtyNotice');
+  notice.innerHTML = `Fits <span class="qty-fit">${perPage} photos/page</span> · ${pages} page${pages>1?'s':''} for ${qty} photo${qty>1?'s':''}`;
+}
+
+// ============================================================
+// GENERATE PREVIEW
+// ============================================================
+async function generatePreview() {
+  if (!state.finalDataURL && !state.originalDataURL) {
+    showToast('Please upload a photo first.', 'error');
+    return;
+  }
+
+  const src = state.finalDataURL || state.originalDataURL;
+  const ps = getPhotoSize();
+  const paper = PAPER_SIZES[document.getElementById('paperSizeSelect').value];
+  const qty = Math.max(1, parseInt(document.getElementById('quantityInput').value) || 1);
+
+  const DPI = 96; // screen DPI for preview
+  const MM_TO_PX = DPI / 25.4;
+
+  const layout = calcLayout(ps.w, ps.h, paper.w, paper.h);
+  const { cols, rows } = layout;
+  const perPage = cols * rows;
+  const margin = 5;
+  const gap = 3;
+
+  const paperPxW = Math.round(paper.w * MM_TO_PX);
+  const paperPxH = Math.round(paper.h * MM_TO_PX);
+  const photoPxW = Math.round(ps.w * MM_TO_PX);
+  const photoPxH = Math.round(ps.h * MM_TO_PX);
+  const marginPx = Math.round(margin * MM_TO_PX);
+  const gapPx = Math.round(gap * MM_TO_PX);
+
+  // Center the grid
+  const totalGridW = cols * photoPxW + (cols - 1) * gapPx;
+  const totalGridH = rows * photoPxH + (rows - 1) * gapPx;
+  const startX = Math.round((paperPxW - totalGridW) / 2);
+  const startY = Math.round((paperPxH - totalGridH) / 2);
+
+  // Load image
+  const img = await loadImage(src);
+
+  // PREVIEW CANVAS (screen scale)
+  const canvas = document.getElementById('previewCanvas');
+  canvas.width = paperPxW;
+  canvas.height = paperPxH;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#f0f0f0';
+  ctx.fillRect(0, 0, paperPxW, paperPxH);
+
+  // Draw photos (up to one page for preview)
+  const photosOnPage = Math.min(qty, perPage);
+  for (let i = 0; i < photosOnPage; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = startX + col * (photoPxW + gapPx);
+    const y = startY + row * (photoPxH + gapPx);
+    ctx.drawImage(img, x, y, photoPxW, photoPxH);
+  }
+
+  // Draw margin guide
+  ctx.strokeStyle = 'rgba(79,255,176,0.3)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 3]);
+  ctx.strokeRect(marginPx, marginPx, paperPxW - marginPx*2, paperPxH - marginPx*2);
+  ctx.setLineDash([]);
+
+  // HIGH-RES CANVAS (300 DPI for download)
+  const HR_DPI = 300;
+  const HR_MM = HR_DPI / 25.4;
+  const hrW = Math.round(paper.w * HR_MM);
+  const hrH = Math.round(paper.h * HR_MM);
+  const hrPhotoW = Math.round(ps.w * HR_MM);
+  const hrPhotoH = Math.round(ps.h * HR_MM);
+  const hrGap = Math.round(gap * HR_MM);
+  const hrTotalGridW = cols * hrPhotoW + (cols - 1) * hrGap;
+  const hrTotalGridH = rows * hrPhotoH + (rows - 1) * hrGap;
+  const hrStartX = Math.round((hrW - hrTotalGridW) / 2);
+  const hrStartY = Math.round((hrH - hrTotalGridH) / 2);
+
+  const hrCanvas = document.createElement('canvas');
+  hrCanvas.width = hrW; hrCanvas.height = hrH;
+  const hrCtx = hrCanvas.getContext('2d');
+  hrCtx.fillStyle = '#ffffff';
+  hrCtx.fillRect(0, 0, hrW, hrH);
+
+  for (let i = 0; i < photosOnPage; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = hrStartX + col * (hrPhotoW + hrGap);
+    const y = hrStartY + row * (hrPhotoH + hrGap);
+    hrCtx.drawImage(img, x, y, hrPhotoW, hrPhotoH);
+  }
+
+  state.highResCanvas = hrCanvas;
+  state.layoutReady = true;
+
+  // Show canvas
+  document.getElementById('canvasPlaceholder').style.display = 'none';
+  canvas.style.display = 'block';
+  canvas.style.maxWidth = '100%';
+
+  // Stats
+  const pages = Math.ceil(qty / perPage);
+  document.getElementById('statPhotos').textContent = qty;
+  document.getElementById('statGrid').textContent = `${cols}×${rows}`;
+  document.getElementById('statPaper').textContent = paper.label;
+  document.getElementById('statSize').textContent = `${ps.w}×${ps.h}mm`;
+  document.getElementById('canvasStats').style.display = 'flex';
+
+  // Enable download
+  document.getElementById('dlPdfBtn').disabled = false;
+  document.getElementById('dlPngBtn').disabled = false;
+
+  setStepActive(4);
+  showToast('Preview generated!', 'success');
+  updateQtyNotice();
+}
+
+function regeneratePreviewSilent() {
+  if (state.layoutReady) generatePreview().catch(() => {});
+}
+
+function hidePreview() {
+  document.getElementById('canvasPlaceholder').style.display = 'flex';
+  document.getElementById('previewCanvas').style.display = 'none';
+  document.getElementById('canvasStats').style.display = 'none';
+  document.getElementById('dlPdfBtn').disabled = true;
+  document.getElementById('dlPngBtn').disabled = true;
 }
 
 function loadImage(src) {
   return new Promise((res, rej) => {
     const img = new Image();
     img.onload = () => res(img);
-    img.onerror = () => rej(new Error('Failed to load image'));
+    img.onerror = rej;
     img.src = src;
   });
 }
 
-async function applyWhiteBackground(transparentDataURL, photoSize) {
-  const img = await loadImage(transparentDataURL);
-  const canvas = document.getElementById('workCanvas');
-
-  // Work at 300 DPI
-  const targetW = Math.round(mm2px(photoSize.w, PRINT_DPI));
-  const targetH = Math.round(mm2px(photoSize.h, PRINT_DPI));
-  canvas.width  = targetW;
-  canvas.height = targetH;
-  const ctx = canvas.getContext('2d');
-
-  // White background
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, targetW, targetH);
-
-  // Draw subject: fit while maintaining aspect, with slight padding
-  const subjectPad = 0.08; // 8% padding
-  const availW = targetW * (1 - subjectPad * 2);
-  const availH = targetH * (1 - subjectPad * 2);
-  const scale = Math.min(availW / img.width, availH / img.height);
-  const drawW = img.width  * scale;
-  const drawH = img.height * scale;
-  const drawX = (targetW - drawW) / 2;
-  const drawY = (targetH - drawH) / 2;
-
-  ctx.drawImage(img, drawX, drawY, drawW, drawH);
-
-  return canvas.toDataURL('image/png', 1.0);
+// ============================================================
+// DOWNLOADS
+// ============================================================
+function downloadPNG() {
+  if (!state.highResCanvas) return;
+  const link = document.createElement('a');
+  link.download = 'passport-photos.png';
+  link.href = state.highResCanvas.toDataURL('image/png');
+  link.click();
+  showToast('PNG downloaded (300 DPI)', 'success');
 }
 
-function showProcessedPreview(dataURL) {
-  const canvas = document.getElementById('processedCanvas');
-  const section = document.getElementById('processedSection');
-  const img = new Image();
-  img.onload = () => {
-    const maxW = 310;
-    const scale = Math.min(maxW / img.width, 180 / img.height);
-    canvas.width  = img.width  * scale;
-    canvas.height = img.height * scale;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    section.classList.add('visible');
-  };
-  img.src = dataURL;
-}
-
-// ─────────────────────────────────────────────
-//  SETTINGS HELPERS
-// ─────────────────────────────────────────────
-function getPhotoSize() {
-  const key = document.getElementById('photoSize').value;
-  if (key === 'custom') {
-    return {
-      w: parseFloat(document.getElementById('customW').value) || 35,
-      h: parseFloat(document.getElementById('customH').value) || 45,
-      label: 'Custom'
-    };
-  }
-  return PHOTO_SIZES[key];
-}
-
-function getPaperSize() {
-  return PAPER_SIZES[document.getElementById('paperSize').value];
-}
-
-function onPhotoSizeChange() {
-  const key = document.getElementById('photoSize').value;
-  const row = document.getElementById('customSizeRow');
-  row.classList.toggle('visible', key === 'custom');
-  if (state.processedDataURL) {
-    regenerateOnChange();
-  }
-}
-
-function selectCopies(el) {
-  document.querySelectorAll('.copy-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  state.copies = parseInt(el.dataset.val);
-  if (state.processedDataURL && state.layoutGenerated) generateLayout();
-}
-
-function calcGrid(paperW, paperH, photoW, photoH) {
-  const usableW = paperW - 2 * MARGIN_MM;
-  const usableH = paperH - 2 * MARGIN_MM;
-  const cols = Math.max(1, Math.floor((usableW + GAP_MM) / (photoW + GAP_MM)));
-  const rows = Math.max(1, Math.floor((usableH + GAP_MM) / (photoH + GAP_MM)));
-  return { cols, rows, total: cols * rows };
-}
-
-let debounceTimer = null;
-function regenerateOnChange() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    if (state.processedDataURL) generateLayout();
-  }, 300);
-}
-
-document.getElementById('photoSize').addEventListener('change', () => {
-  if (document.getElementById('photoSize').value !== 'custom') regenerateOnChange();
-});
-document.getElementById('paperSize').addEventListener('change', regenerateOnChange);
-document.getElementById('customW').addEventListener('input', regenerateOnChange);
-document.getElementById('customH').addEventListener('input', regenerateOnChange);
-
-// ─────────────────────────────────────────────
-//  LAYOUT GENERATION
-// ─────────────────────────────────────────────
-async function generateLayout() {
-  if (!state.processedDataURL) {
-    showToast('Please process an image first.', 'warning');
-    return;
-  }
-
-  const photo  = getPhotoSize();
-  const paper  = getPaperSize();
-  const { cols, rows } = calcGrid(paper.w, paper.h, photo.w, photo.h);
-  const totalSlots = cols * rows;
-  const copies = Math.min(state.copies, totalSlots);
-
-  document.getElementById('btnGenerate').disabled = true;
-
-  try {
-    const img = await loadImage(state.processedDataURL);
-
-    // Display canvas — scale paper to fit screen
-    const displayCanvas = document.getElementById('layoutCanvas');
-    const maxDisplayW = document.getElementById('previewBody').clientWidth - 40;
-    const maxDisplayH = window.innerHeight - 220;
-    const scaleX = maxDisplayW  / paper.w;
-    const scaleY = maxDisplayH  / paper.h;
-    const displayScale = Math.min(scaleX, scaleY, 4);
-
-    displayCanvas.width  = Math.round(paper.w * displayScale);
-    displayCanvas.height = Math.round(paper.h * displayScale);
-    const ctx = displayCanvas.getContext('2d');
-
-    // Draw paper background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, displayCanvas.width, displayCanvas.height);
-
-    // Draw photos
-    const scale = displayScale;
-    let count = 0;
-    outerLoop:
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        if (count >= copies) break outerLoop;
-        const x = (MARGIN_MM + c * (photo.w + GAP_MM)) * scale;
-        const y = (MARGIN_MM + r * (photo.h + GAP_MM)) * scale;
-        const w = photo.w * scale;
-        const h = photo.h * scale;
-
-        // White bg + border
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(x, y, w, h);
-        ctx.strokeStyle = '#e2e5ea';
-        ctx.lineWidth = 0.5;
-        ctx.strokeRect(x + 0.25, y + 0.25, w - 0.5, h - 0.5);
-
-        ctx.drawImage(img, x, y, w, h);
-        count++;
-      }
-    }
-
-    // Show canvas, hide empty state
-    displayCanvas.style.display = 'block';
-    document.getElementById('previewEmpty').style.display = 'none';
-
-    // Meta info
-    const metaEl = document.getElementById('previewMeta');
-    metaEl.style.display = 'flex';
-    metaEl.innerHTML = `
-      <div class="meta-pill"><strong>${copies}</strong> photos on <strong>${paper.label}</strong></div>
-      <div class="meta-pill"><strong>${cols}×${rows}</strong> grid layout</div>
-      <div class="meta-pill"><strong>${photo.label || photo.w+'×'+photo.h+'mm'}</strong> each</div>
-    `;
-    document.getElementById('previewInfoPill').textContent = `${copies} photos · ${cols}c × ${rows}r`;
-
-    state.layoutGenerated = true;
-    setStep2Done();
-    document.getElementById('btnDownloadPDF').disabled = false;
-    document.getElementById('btnDownloadImg').disabled = false;
-    showToast(`Layout ready — ${copies} photos in ${cols}×${rows} grid`, 'success');
-
-  } catch(err) {
-    console.error(err);
-    showToast('Failed to generate layout: ' + err.message, 'error');
-  }
-
-  document.getElementById('btnGenerate').disabled = false;
-}
-
-// ─────────────────────────────────────────────
-//  PDF DOWNLOAD
-// ─────────────────────────────────────────────
-async function downloadPDF() {
-  if (!state.processedDataURL || !state.layoutGenerated) {
-    showToast('Please generate layout first.', 'warning');
-    return;
-  }
-
-  showLoading('Generating PDF…', 'Creating print-ready 300 DPI document');
-  document.getElementById('btnDownloadPDF').disabled = true;
-
+function downloadPDF() {
+  if (!state.highResCanvas) return;
   try {
     const { jsPDF } = window.jspdf;
-    const photo  = getPhotoSize();
-    const paper  = getPaperSize();
-    const { cols, rows } = calcGrid(paper.w, paper.h, photo.w, photo.h);
-    const copies = Math.min(state.copies, cols * rows);
-
-    const orientation = paper.h >= paper.w ? 'portrait' : 'landscape';
-    const pdf = new jsPDF({
+    const paper = state.paperSize;
+    const orientation = paper.w > paper.h ? 'landscape' : 'portrait';
+    const doc = new jsPDF({
       orientation,
       unit: 'mm',
       format: [paper.w, paper.h],
-      compress: true
     });
 
-    const img = await loadImage(state.processedDataURL);
-
-    // Generate high-res image at 300 DPI
-    const hiResCanvas = document.createElement('canvas');
-    const hiResW = Math.round(mm2px(photo.w, PRINT_DPI));
-    const hiResH = Math.round(mm2px(photo.h, PRINT_DPI));
-    hiResCanvas.width  = hiResW;
-    hiResCanvas.height = hiResH;
-    const hCtx = hiResCanvas.getContext('2d');
-    hCtx.fillStyle = '#ffffff';
-    hCtx.fillRect(0, 0, hiResW, hiResH);
-    hCtx.drawImage(img, 0, 0, hiResW, hiResH);
-    const hiResDataURL = hiResCanvas.toDataURL('image/jpeg', 0.95);
-
-    let count = 0;
-    outerLoop:
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        if (count >= copies) break outerLoop;
-        const x = MARGIN_MM + c * (photo.w + GAP_MM);
-        const y = MARGIN_MM + r * (photo.h + GAP_MM);
-        pdf.addImage(hiResDataURL, 'JPEG', x, y, photo.w, photo.h, undefined, 'FAST');
-        count++;
-      }
-    }
-
-    // Metadata
-    pdf.setProperties({
-      title: 'Passport Photos — PhotoPass Pro',
-      subject: `${copies} × ${photo.label || photo.w+'×'+photo.h+'mm'} on ${paper.label}`,
-      creator: 'PhotoPass Pro'
-    });
-
-    const filename = `passport-photos-${Date.now()}.pdf`;
-    pdf.save(filename);
-
-    hideLoading();
-    setStep3Done();
-    showToast('PDF downloaded successfully!', 'success');
-
-  } catch(err) {
-    hideLoading();
-    console.error(err);
-    showToast('PDF generation failed: ' + err.message, 'error');
+    const imgData = state.highResCanvas.toDataURL('image/png');
+    doc.addImage(imgData, 'PNG', 0, 0, paper.w, paper.h);
+    doc.save('passport-photos.pdf');
+    showToast('PDF downloaded!', 'success');
+  } catch (e) {
+    showToast('PDF error: ' + e.message, 'error');
   }
-
-  document.getElementById('btnDownloadPDF').disabled = false;
 }
 
-// ─────────────────────────────────────────────
-//  IMAGE DOWNLOAD
-// ─────────────────────────────────────────────
-async function downloadImage() {
-  if (!state.processedDataURL || !state.layoutGenerated) {
-    showToast('Please generate layout first.', 'warning');
-    return;
-  }
-
-  showLoading('Generating Image…', 'Creating high-resolution PNG');
-  document.getElementById('btnDownloadImg').disabled = true;
-
-  try {
-    const photo  = getPhotoSize();
-    const paper  = getPaperSize();
-    const { cols, rows } = calcGrid(paper.w, paper.h, photo.w, photo.h);
-    const copies = Math.min(state.copies, cols * rows);
-
-    // Render at 300 DPI
-    const scale = PRINT_DPI / 25.4; // px per mm
-    const canvasW = Math.round(paper.w * scale);
-    const canvasH = Math.round(paper.h * scale);
-    const cvs = document.createElement('canvas');
-    cvs.width  = canvasW;
-    cvs.height = canvasH;
-    const ctx = cvs.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvasW, canvasH);
-
-    const img = await loadImage(state.processedDataURL);
-
-    let count = 0;
-    outerLoop:
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        if (count >= copies) break outerLoop;
-        const x = (MARGIN_MM + c * (photo.w + GAP_MM)) * scale;
-        const y = (MARGIN_MM + r * (photo.h + GAP_MM)) * scale;
-        const w = photo.w * scale;
-        const h = photo.h * scale;
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(x, y, w, h);
-        ctx.drawImage(img, x, y, w, h);
-        count++;
-      }
-    }
-
-    // Download
-    const link = document.createElement('a');
-    link.href = cvs.toDataURL('image/png', 1.0);
-    link.download = `passport-photos-${Date.now()}.png`;
-    link.click();
-
-    hideLoading();
-    setStep3Done();
-    showToast('Image downloaded successfully!', 'success');
-
-  } catch(err) {
-    hideLoading();
-    console.error(err);
-    showToast('Image download failed: ' + err.message, 'error');
-  }
-
-  document.getElementById('btnDownloadImg').disabled = false;
+// ============================================================
+// HELPERS
+// ============================================================
+function checkGenerateReady() {
+  const ready = !!(state.finalDataURL || state.originalDataURL);
+  document.getElementById('generateBtn').disabled = !ready;
 }
 
-// ─────────────────────────────────────────────
-//  INIT
-// ─────────────────────────────────────────────
-window.addEventListener('resize', () => {
-  if (state.processedDataURL && state.layoutGenerated) generateLayout();
-});
+function setStepActive(n) {
+  document.querySelectorAll('.step-chip').forEach((c, i) => {
+    c.classList.toggle('active', i < n);
+  });
+}
 
-console.log('%cPhotoPass Pro ready.', 'color:#1b4fff;font-family:monospace;font-size:14px;font-weight:bold;');
+function showLoader(msg) {
+  document.getElementById('loader-msg').textContent = msg || 'Processing…';
+  document.getElementById('global-loader').classList.add('show');
+}
+function hideLoader() {
+  document.getElementById('global-loader').classList.remove('show');
+}
+
+function showToast(msg, type='info') {
+  const container = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
 </script>
 </body>
 </html>
